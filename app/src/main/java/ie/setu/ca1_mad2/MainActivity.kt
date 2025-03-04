@@ -4,14 +4,28 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import ie.setu.ca1_mad2.ui.screens.AddExerciseScreen
+import ie.setu.ca1_mad2.ui.screens.ListExerciseScreen
 import ie.setu.ca1_mad2.ui.theme.CA1MAD2Theme
+import androidx.lifecycle.viewmodel.compose.viewModel
+
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,29 +33,46 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             CA1MAD2Theme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
-                }
+                val gymViewModel: GymTrackerViewModel = viewModel()
+                GymTrackApp(gymViewModel)
             }
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
+fun GymTrackApp(viewModel: GymTrackerViewModel) {
+    var currentScreen by remember { mutableStateOf("add") }
 
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    CA1MAD2Theme {
-        Greeting("Android")
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Gym Tracker") }
+            )
+        },
+        bottomBar = {
+            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+                Button(
+                    onClick = { currentScreen = "add" },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text("Add Exercise")
+                }
+                Button(
+                    onClick = { currentScreen = "list" },
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text("List Exercises")
+                }
+            }
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
+            when (currentScreen) {
+                "add" -> AddExerciseScreen(viewModel)
+                "list" -> ListExerciseScreen(viewModel)
+            }
+        }
     }
 }
