@@ -7,17 +7,24 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ie.setu.ca1_mad2.ui.screens.AddExerciseScreen
@@ -46,29 +53,60 @@ fun GymTrackApp(viewModel: GymTrackerViewModel) {
     var currentScreen by remember { mutableStateOf("add") }
 
     Scaffold(
+        // Top bar
         topBar = {
-            TopAppBar(
-                title = { Text("Gym Tracker") }
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = "Gym Tracker",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
+                },
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
             )
         },
+        // Bottom bar
         bottomBar = {
-            Row(horizontalArrangement = Arrangement.SpaceEvenly) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // "Add" Button
                 Button(
                     onClick = { currentScreen = "add" },
-                    modifier = Modifier.padding(8.dp)
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    ),
+                    modifier = Modifier.size(80.dp)
                 ) {
-                    Text("Add Exercise")
+                    Text("Add")
                 }
+
+                // List Button
                 Button(
                     onClick = { currentScreen = "list" },
-                    modifier = Modifier.padding(8.dp)
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.secondary
+                    ),
+                    modifier = Modifier.size(80.dp)
                 ) {
-                    Text("List Exercises")
+                    Text("List")
                 }
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.padding(paddingValues)) {
+        Box(modifier = Modifier
+            .fillMaxSize()
+            .padding(paddingValues)
+        ) {
             when (currentScreen) {
                 "add" -> AddExerciseScreen(viewModel)
                 "list" -> ListExerciseScreen(viewModel)
