@@ -13,5 +13,5 @@ val Pink40 = Color(0xFF7D5260)
 val BluePrimary = Color(0xFF2196F3)
 val BlueDark = Color(0xFF1976D2)
 
-val YellowSecondary = Color(0xFFFFEB3B)
+val YellowSecondary = Color(0xFFc9cf27)
 val YellowDark = Color(0xFFFBC02D)
