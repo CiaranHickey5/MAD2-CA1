@@ -35,4 +35,13 @@ class GymTrackerViewModel : ViewModel() {
             workout.exercises.add(Exercise(name = exerciseName, muscleGroup = exerciseMuscleGroup))
         }
     }
+
+    // Update an exercise of a specific workout
+    fun updateExercise(exerciseId: String, newName: String, newMuscleGroup: String) {
+        val index = _exercises.indexOfFirst { it.id == exerciseId }
+        if (index != -1 && newName.isNotBlank()) {
+            val oldExercise = _exercises[index]
+            _exercises[index] = oldExercise.copy(name = newName, muscleGroup = newMuscleGroup)
+        }
+    }
 }
