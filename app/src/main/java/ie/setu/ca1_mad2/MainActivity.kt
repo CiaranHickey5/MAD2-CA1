@@ -31,7 +31,10 @@ import ie.setu.ca1_mad2.ui.screens.AddExerciseScreen
 import ie.setu.ca1_mad2.ui.screens.ListExerciseScreen
 import ie.setu.ca1_mad2.ui.theme.CA1MAD2Theme
 import androidx.lifecycle.viewmodel.compose.viewModel
-
+import ie.setu.ca1_mad2.model.Workout
+import ie.setu.ca1_mad2.ui.screens.AddWorkoutScreen
+import ie.setu.ca1_mad2.ui.screens.ListWorkoutsScreen
+import ie.setu.ca1_mad2.ui.screens.WorkoutDetailScreen
 
 
 class MainActivity : ComponentActivity() {
@@ -51,6 +54,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun GymTrackApp(viewModel: GymTrackerViewModel) {
     var currentScreen by remember { mutableStateOf("add") }
+    var selectedWorkout by remember { mutableStateOf<Workout?>(null) }
 
     Scaffold(
         // Top bar
@@ -74,42 +78,36 @@ fun GymTrackApp(viewModel: GymTrackerViewModel) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                // "Add" Button
-                Button(
-                    onClick = { currentScreen = "add" },
-                    shape = MaterialTheme.shapes.small,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    modifier = Modifier.size(80.dp)
-                ) {
-                    Text("Add")
+                Button(onClick = { currentScreen = "addWorkout" }) {
+                    Text("Add Workout")
                 }
-
-                // List Button
-                Button(
-                    onClick = { currentScreen = "list" },
-                    shape = MaterialTheme.shapes.small,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    modifier = Modifier.size(80.dp)
-                ) {
-                    Text("List")
+                Button(onClick = { currentScreen = "listWorkouts" }) {
+                    Text("List Workouts")
                 }
             }
         }
     ) { paddingValues ->
-        Box(modifier = Modifier
-            .fillMaxSize()
-            .padding(paddingValues)
-        ) {
+        Box(modifier = Modifier.padding(paddingValues)) {
             when (currentScreen) {
-                "add" -> AddExerciseScreen(viewModel)
-                "list" -> ListExerciseScreen(viewModel)
+                "addWorkout" -> {
+                    AddWorkoutScreen(viewModel)
+                }
+                "listWorkouts" -> {
+                    ListWorkoutsScreen(
+                        viewModel = viewModel,
+                        onWorkoutSelected = { workout ->
+                            selectedWorkout = workout
+                            currentScreen = "workoutDetail"
+                        }
+                    )
+                }
+                "workoutDetail" -> {
+                    selectedWorkout?.let { workout ->
+                        WorkoutDetailScreen(viewModel, workout)
+                    }
+                }
             }
         }
     }
