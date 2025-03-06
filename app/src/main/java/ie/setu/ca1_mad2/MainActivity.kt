@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -74,17 +75,34 @@ fun GymTrackApp(viewModel: GymTrackerViewModel) {
         },
         // Bottom bar
         bottomBar = {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp),
-                horizontalArrangement = Arrangement.SpaceEvenly
+                    .padding(bottom = 24.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
-                Button(onClick = { currentScreen = "addWorkout" }) {
-                    Text("Add Workout")
-                }
-                Button(onClick = { currentScreen = "listWorkouts" }) {
-                    Text("List Workouts")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly
+                ) {
+                    Button(
+                        onClick = { currentScreen = "addWorkout" },
+                        modifier = Modifier.size(width = 120.dp, height = 50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
+                    ) {
+                        Text("Add Workout")
+                    }
+                    Button(
+                        onClick = { currentScreen = "listWorkouts" },
+                        modifier = Modifier.size(width = 120.dp, height = 50.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary
+                        )
+                    ) {
+                        Text("List Workouts")
+                    }
                 }
             }
         }
