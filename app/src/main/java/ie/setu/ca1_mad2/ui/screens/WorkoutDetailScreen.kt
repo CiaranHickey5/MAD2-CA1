@@ -1,3 +1,5 @@
+package ie.setu.ca1_mad2.ui.screens
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -13,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -43,11 +46,76 @@ fun WorkoutDetailScreen(
     var exerciseMuscleGroup by remember { mutableStateOf("") }
     var exerciseAdded by remember { mutableStateOf(false) }
 
+    // States for edit dialog
+    var showEditDialog by remember { mutableStateOf(false) }
+    var exerciseToEdit by remember { mutableStateOf<Exercise?>(null) }
+    var editedName by remember { mutableStateOf("") }
+    var editedMuscleGroup by remember { mutableStateOf("") }
+
     // States for delete dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
     var exerciseToDelete by remember { mutableStateOf<Exercise?>(null) }
 
-    // Delete Exercise
+    // Edit Exercise Dialog
+    if (showEditDialog && exerciseToEdit != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showEditDialog = false
+                exerciseToEdit = null
+            },
+            title = { Text("Edit Exercise") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = editedName,
+                        onValueChange = { editedName = it },
+                        label = { Text("Exercise Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    OutlinedTextField(
+                        value = editedMuscleGroup,
+                        onValueChange = { editedMuscleGroup = it },
+                        label = { Text("Muscle Group") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        exerciseToEdit?.let { exercise ->
+                            viewModel.updateWorkoutExercise(
+                                workoutId = workout.id,
+                                exerciseId = exercise.id,
+                                newName = editedName,
+                                newMuscleGroup = editedMuscleGroup
+                            )
+                        }
+                        showEditDialog = false
+                        exerciseToEdit = null
+                    },
+                    enabled = editedName.isNotBlank()
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = {
+                    showEditDialog = false
+                    exerciseToEdit = null
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Delete Exercise Dialog
     if (showDeleteDialog && exerciseToDelete != null) {
         AlertDialog(
             onDismissRequest = {
@@ -150,7 +218,7 @@ fun WorkoutDetailScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            // Exercise header with delete button
+                            // Exercise header with edit and delete buttons
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -162,6 +230,22 @@ fun WorkoutDetailScreen(
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.weight(1f)
                                 )
+
+                                // Edit button
+                                IconButton(
+                                    onClick = {
+                                        exerciseToEdit = exercise
+                                        editedName = exercise.name
+                                        editedMuscleGroup = exercise.muscleGroup
+                                        showEditDialog = true
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Edit Exercise",
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
 
                                 // Delete button
                                 IconButton(
@@ -240,7 +324,7 @@ fun WorkoutDetailScreen(
                 modifier = Modifier.padding(top = 8.dp)
             )
 
-            // Reset message after delay
+            // Reset the success message after a delay
             LaunchedEffect(exerciseAdded) {
                 delay(2000)
                 exerciseAdded = false

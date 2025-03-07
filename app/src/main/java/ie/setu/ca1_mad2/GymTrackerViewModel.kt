@@ -42,6 +42,17 @@ class GymTrackerViewModel : ViewModel() {
         }
     }
 
+    // Update an exercise within a workout
+    fun updateWorkoutExercise(workoutId: String, exerciseId: String, newName: String, newMuscleGroup: String) {
+        val workout = _workouts.find { it.id == workoutId } ?: return
+        val index = workout.exercises.indexOfFirst { it.id == exerciseId }
+
+        if (index != -1 && newName.isNotBlank()) {
+            val oldExercise = workout.exercises[index]
+            workout.exercises[index] = oldExercise.copy(name = newName, muscleGroup = newMuscleGroup)
+        }
+    }
+
     // Remove an exercise from a specific workout
     fun removeExerciseFromWorkout(workoutId: String, exerciseId: String) {
         val workout = _workouts.find { it.id == workoutId } ?: return
