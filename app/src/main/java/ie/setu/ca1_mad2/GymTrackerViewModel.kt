@@ -10,19 +10,12 @@ class GymTrackerViewModel : ViewModel() {
     private val _exercises = mutableStateListOf<Exercise>()
     val exercises: List<Exercise> get() = _exercises
 
+    // Create global exercise
     fun addExercise(name: String, muscleGroup: String) {
         if (name.isNotBlank()) {
             _exercises.add(
                 Exercise(name = name, muscleGroup = muscleGroup)
             )
-        }
-    }
-
-    fun updateExercise(exerciseId: String, newName: String, newMuscleGroup: String) {
-        val index = _exercises.indexOfFirst { it.id == exerciseId }
-        if (index != -1 && newName.isNotBlank()) {
-            val oldExercise = _exercises[index]
-            _exercises[index] = oldExercise.copy(name = newName, muscleGroup = newMuscleGroup)
         }
     }
 
@@ -34,6 +27,11 @@ class GymTrackerViewModel : ViewModel() {
         if (name.isNotBlank()) {
             _workouts.add(Workout(name = name, description = description))
         }
+    }
+
+    // Delete a workout by ID
+    fun deleteWorkout(workoutId: String) {
+        _workouts.removeIf { it.id == workoutId }
     }
 
     // Add an exercise to a specific workout
