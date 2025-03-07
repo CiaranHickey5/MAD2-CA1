@@ -16,8 +16,8 @@ data class NavBarItem(
 // Function that returns main nav items
 fun navBarItems() = listOf(
     NavBarItem(AppRoutes.HOME, "Home"),
-    NavBarItem(AppRoutes.ADD_WORKOUT, "Add WO"),
-    NavBarItem(AppRoutes.LIST_WORKOUTS, "List WO")
+    NavBarItem(AppRoutes.ADD_WORKOUT, "Add Workout"),
+    NavBarItem(AppRoutes.LIST_WORKOUTS, "List Workout")
 )
 
 @Composable

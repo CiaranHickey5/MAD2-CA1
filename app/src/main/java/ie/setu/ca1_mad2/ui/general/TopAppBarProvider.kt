@@ -15,7 +15,7 @@ fun TopAppBarProvider(navController: NavController) {
 
 
     CenterAlignedTopAppBar(
-        title = { Text("GymTracker — $currentRoute") },
+        title = { Text("Gym Tracker") },
         navigationIcon = {
         }
     )
