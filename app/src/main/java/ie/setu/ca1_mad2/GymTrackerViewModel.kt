@@ -29,6 +29,19 @@ class GymTrackerViewModel : ViewModel() {
         }
     }
 
+    // Update an existing workout
+    fun updateWorkout(workoutId: String, newName: String, newDescription: String) {
+        val index = _workouts.indexOfFirst { it.id == workoutId }
+        if (index != -1 && newName.isNotBlank()) {
+            val oldWorkout = _workouts[index]
+            _workouts[index] = oldWorkout.copy(
+                name = newName,
+                description = newDescription,
+                exercises = oldWorkout.exercises // Keep existing exercises
+            )
+        }
+    }
+
     // Delete a workout by ID
     fun deleteWorkout(workoutId: String) {
         _workouts.removeIf { it.id == workoutId }

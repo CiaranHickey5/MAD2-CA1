@@ -6,14 +6,17 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -23,6 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -46,6 +50,70 @@ fun ListWorkoutsScreen(
     // State for deletion confirmation
     var workoutToDelete by remember { mutableStateOf<Workout?>(null) }
     var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // State for editing workout
+    var workoutToEdit by remember { mutableStateOf<Workout?>(null) }
+    var showEditDialog by remember { mutableStateOf(false) }
+    var editedName by remember { mutableStateOf("") }
+    var editedDescription by remember { mutableStateOf("") }
+
+    // Edit Workout Dialog
+    if (showEditDialog && workoutToEdit != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showEditDialog = false
+                workoutToEdit = null
+            },
+            title = { Text("Edit Workout") },
+            text = {
+                Column {
+                    OutlinedTextField(
+                        value = editedName,
+                        onValueChange = { editedName = it },
+                        label = { Text("Workout Name") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    OutlinedTextField(
+                        value = editedDescription,
+                        onValueChange = { editedDescription = it },
+                        label = { Text("Description") },
+                        modifier = Modifier.fillMaxWidth().height(120.dp),
+                        maxLines = 5
+                    )
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        workoutToEdit?.let { workout ->
+                            viewModel.updateWorkout(
+                                workoutId = workout.id,
+                                newName = editedName,
+                                newDescription = editedDescription
+                            )
+                        }
+                        showEditDialog = false
+                        workoutToEdit = null
+                    },
+                    enabled = editedName.isNotBlank()
+                ) {
+                    Text("Save")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = {
+                    showEditDialog = false
+                    workoutToEdit = null
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     // Delete confirmation dialog
     if (showDeleteDialog && workoutToDelete != null) {
@@ -119,6 +187,12 @@ fun ListWorkoutsScreen(
                         onDeleteClicked = {
                             workoutToDelete = workout
                             showDeleteDialog = true
+                        },
+                        onEditClicked = {
+                            workoutToEdit = workout
+                            editedName = workout.name
+                            editedDescription = workout.description
+                            showEditDialog = true
                         }
                     )
                 }
@@ -131,7 +205,8 @@ fun ListWorkoutsScreen(
 fun WorkoutCard(
     workout: Workout,
     onWorkoutSelected: (Workout) -> Unit,
-    onDeleteClicked: () -> Unit
+    onDeleteClicked: () -> Unit,
+    onEditClicked: () -> Unit
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -143,7 +218,7 @@ fun WorkoutCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Workout title and delete button in a row
+            // Workout title and action buttons in a row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -155,6 +230,15 @@ fun WorkoutCard(
                     color = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.weight(1f)
                 )
+
+                // Edit icon button
+                IconButton(onClick = onEditClicked) {
+                    Icon(
+                        imageVector = Icons.Default.Edit,
+                        contentDescription = "Edit Workout",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
 
                 // Delete icon button
                 IconButton(onClick = onDeleteClicked) {
