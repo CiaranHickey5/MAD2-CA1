@@ -1,6 +1,5 @@
 package ie.setu.ca1_mad2.navigation
 
-import WorkoutDetailScreen
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable

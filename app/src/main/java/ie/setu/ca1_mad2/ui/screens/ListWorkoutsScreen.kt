@@ -1,7 +1,7 @@
 package ie.setu.ca1_mad2.ui.screens
 
+import EmptyStateMessage
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,6 +39,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import ie.setu.ca1_mad2.GymTrackerViewModel
 import ie.setu.ca1_mad2.model.Workout
+import ie.setu.ca1_mad2.ui.components.cards.WorkoutCard
+import ie.setu.ca1_mad2.ui.components.dialogs.DeleteConfirmationDialog
+import ie.setu.ca1_mad2.ui.components.dialogs.EditWorkoutDialog
 
 @Composable
 fun ListWorkoutsScreen(
@@ -59,92 +62,45 @@ fun ListWorkoutsScreen(
 
     // Edit Workout Dialog
     if (showEditDialog && workoutToEdit != null) {
-        AlertDialog(
-            onDismissRequest = {
+        EditWorkoutDialog(
+            workout = workoutToEdit!!,
+            name = editedName,
+            description = editedDescription,
+            onNameChange = { editedName = it },
+            onDescriptionChange = { editedDescription = it },
+            onSave = {
+                workoutToEdit?.let { workout ->
+                    viewModel.updateWorkout(
+                        workoutId = workout.id,
+                        newName = editedName,
+                        newDescription = editedDescription
+                    )
+                }
                 showEditDialog = false
                 workoutToEdit = null
             },
-            title = { Text("Edit Workout") },
-            text = {
-                Column {
-                    OutlinedTextField(
-                        value = editedName,
-                        onValueChange = { editedName = it },
-                        label = { Text("Workout Name") },
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
-                    )
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    OutlinedTextField(
-                        value = editedDescription,
-                        onValueChange = { editedDescription = it },
-                        label = { Text("Description") },
-                        modifier = Modifier.fillMaxWidth().height(120.dp),
-                        maxLines = 5
-                    )
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        workoutToEdit?.let { workout ->
-                            viewModel.updateWorkout(
-                                workoutId = workout.id,
-                                newName = editedName,
-                                newDescription = editedDescription
-                            )
-                        }
-                        showEditDialog = false
-                        workoutToEdit = null
-                    },
-                    enabled = editedName.isNotBlank()
-                ) {
-                    Text("Save")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = {
-                    showEditDialog = false
-                    workoutToEdit = null
-                }) {
-                    Text("Cancel")
-                }
+            onDismiss = {
+                showEditDialog = false
+                workoutToEdit = null
             }
         )
     }
 
     // Delete confirmation dialog
     if (showDeleteDialog && workoutToDelete != null) {
-        AlertDialog(
-            onDismissRequest = {
+        DeleteConfirmationDialog(
+            title = "Delete Workout",
+            itemName = workoutToDelete?.name ?: "",
+            onConfirm = {
+                workoutToDelete?.let { workout ->
+                    viewModel.deleteWorkout(workout.id)
+                }
                 showDeleteDialog = false
                 workoutToDelete = null
             },
-            title = { Text("Delete Workout") },
-            text = { Text("Are you sure you want to delete '${workoutToDelete?.name}'? This action cannot be undone.") },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        workoutToDelete?.let { workout ->
-                            viewModel.deleteWorkout(workout.id)
-                        }
-                        showDeleteDialog = false
-                        workoutToDelete = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
-                ) {
-                    Text("Delete")
-                }
-            },
-            dismissButton = {
-                OutlinedButton(onClick = {
-                    showDeleteDialog = false
-                    workoutToDelete = null
-                }) {
-                    Text("Cancel")
-                }
+            onDismiss = {
+                showDeleteDialog = false
+                workoutToDelete = null
             }
         )
     }
@@ -162,19 +118,7 @@ fun ListWorkoutsScreen(
         )
 
         if (workouts.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(top = 32.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No workouts yet. Add your first workout!",
-                    style = MaterialTheme.typography.bodyLarge,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            EmptyStateMessage(message = "No workouts yet. Add your first workout!")
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -196,93 +140,6 @@ fun ListWorkoutsScreen(
                         }
                     )
                 }
-            }
-        }
-    }
-}
-
-@Composable
-fun WorkoutCard(
-    workout: Workout,
-    onWorkoutSelected: (Workout) -> Unit,
-    onDeleteClicked: () -> Unit,
-    onEditClicked: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            // Workout title and action buttons in a row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = workout.name,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f)
-                )
-
-                // Edit icon button
-                IconButton(onClick = onEditClicked) {
-                    Icon(
-                        imageVector = Icons.Default.Edit,
-                        contentDescription = "Edit Workout",
-                        tint = MaterialTheme.colorScheme.primary
-                    )
-                }
-
-                // Delete icon button
-                IconButton(onClick = onDeleteClicked) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Delete Workout",
-                        tint = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-
-            if (workout.description.isNotBlank()) {
-                Text(
-                    text = workout.description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primaryContainer,
-                        RoundedCornerShape(8.dp)
-                    )
-                    .padding(8.dp)
-            ) {
-                Text(
-                    text = "Exercises: ${workout.exercises.size}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onPrimaryContainer
-                )
-            }
-
-            // View details button
-            Button(
-                onClick = { onWorkoutSelected(workout) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 12.dp)
-            ) {
-                Text("View Details")
             }
         }
     }

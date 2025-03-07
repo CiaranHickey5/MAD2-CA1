@@ -1,5 +1,7 @@
 package ie.setu.ca1_mad2.ui.screens
 
+import FormField
+import SuccessMessage
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -9,7 +11,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,22 +38,21 @@ fun AddWorkoutScreen(viewModel: GymTrackerViewModel) {
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
-        OutlinedTextField(
+        FormField(
             value = name,
             onValueChange = { name = it },
-            label = { Text("Workout Name") },
-            modifier = Modifier.fillMaxWidth(),
+            label = "Workout Name",
             singleLine = true
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        OutlinedTextField(
+        FormField(
             value = description,
             onValueChange = { description = it },
-            label = { Text("Description") },
-            modifier = Modifier.fillMaxWidth().height(120.dp),
-            maxLines = 5
+            label = "Description",
+            singleLine = false,
+            modifier = Modifier.height(120.dp)
         )
 
         Spacer(modifier = Modifier.height(24.dp))
@@ -74,12 +74,7 @@ fun AddWorkoutScreen(viewModel: GymTrackerViewModel) {
         Spacer(modifier = Modifier.height(16.dp))
 
         if (workoutAdded) {
-            Text(
-                "Workout has been added!",
-                color = MaterialTheme.colorScheme.primary,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(top = 8.dp)
-            )
+            SuccessMessage(message = "Workout has been added!")
 
             // Reset message after delay
             LaunchedEffect(workoutAdded) {

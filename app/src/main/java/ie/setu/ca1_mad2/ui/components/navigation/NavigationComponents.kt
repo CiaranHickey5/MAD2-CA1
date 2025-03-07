@@ -1,9 +1,11 @@
-package ie.setu.ca1_mad2.ui.general
+package ie.setu.ca1_mad2.ui.components.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -22,19 +24,19 @@ data class NavBarItem(
 )
 
 // Function that returns main nav items
-fun navBarItems() = listOf(
+fun getMainNavItems() = listOf(
     NavBarItem(AppRoutes.HOME, "Home", Icons.Default.Home),
     NavBarItem(AppRoutes.ADD_WORKOUT, "Add Workout", Icons.Default.Add),
     NavBarItem(AppRoutes.LIST_WORKOUTS, "Workouts", Icons.Default.List)
 )
 
 @Composable
-fun BottomAppBarProvider(navController: NavController) {
+fun BottomNavigationBar(navController: NavController) {
     NavigationBar {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        navBarItems().forEach { item ->
+        getMainNavItems().forEach { item ->
             NavigationBarItem(
                 selected = (currentRoute == item.route),
                 onClick = {
@@ -49,4 +51,17 @@ fun BottomAppBarProvider(navController: NavController) {
             )
         }
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun TopAppBarComponent(title: String = "Gym Tracker") {
+    CenterAlignedTopAppBar(
+        title = { Text(title) }
+    )
+}
+
+@Composable
+fun AppNavigation(navController: NavController) {
+    BottomNavigationBar(navController = navController)
 }
