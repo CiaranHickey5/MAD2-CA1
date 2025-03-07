@@ -1,9 +1,8 @@
-package ie.setu.ca1_mad2.ui.screens
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,10 +11,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -24,6 +30,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import ie.setu.ca1_mad2.GymTrackerViewModel
+import ie.setu.ca1_mad2.model.Exercise
 import ie.setu.ca1_mad2.model.Workout
 import kotlinx.coroutines.delay
 
@@ -35,6 +42,47 @@ fun WorkoutDetailScreen(
     var exerciseName by remember { mutableStateOf("") }
     var exerciseMuscleGroup by remember { mutableStateOf("") }
     var exerciseAdded by remember { mutableStateOf(false) }
+
+    // States for delete dialog
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var exerciseToDelete by remember { mutableStateOf<Exercise?>(null) }
+
+    // Delete Exercise
+    if (showDeleteDialog && exerciseToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                exerciseToDelete = null
+            },
+            title = { Text("Delete Exercise") },
+            text = { Text("Are you sure you want to remove '${exerciseToDelete?.name}' from this workout?") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        exerciseToDelete?.let { exercise ->
+                            viewModel.removeExerciseFromWorkout(
+                                workoutId = workout.id,
+                                exerciseId = exercise.id
+                            )
+                        }
+                        showDeleteDialog = false
+                        exerciseToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                OutlinedButton(onClick = {
+                    showDeleteDialog = false
+                    exerciseToDelete = null
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -102,11 +150,34 @@ fun WorkoutDetailScreen(
                                 .fillMaxWidth()
                                 .padding(16.dp)
                         ) {
-                            Text(
-                                text = exercise.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                            // Exercise header with delete button
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = exercise.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.weight(1f)
+                                )
+
+                                // Delete button
+                                IconButton(
+                                    onClick = {
+                                        exerciseToDelete = exercise
+                                        showDeleteDialog = true
+                                    }
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Delete Exercise",
+                                        tint = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+
                             Text(
                                 text = "Muscle Group: ${exercise.muscleGroup}",
                                 style = MaterialTheme.typography.bodyMedium,
@@ -163,7 +234,7 @@ fun WorkoutDetailScreen(
 
         if (exerciseAdded) {
             Text(
-                "Exercise has been added!",
+                "Exercise added successfully!",
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 8.dp)
