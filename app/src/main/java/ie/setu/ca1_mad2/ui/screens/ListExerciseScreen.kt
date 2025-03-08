@@ -1,5 +1,6 @@
 package ie.setu.ca1_mad2.ui.screens
 
+import EmptyStateMessage
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -12,14 +13,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import ie.setu.ca1_mad2.GymTrackerViewModel
-
+import ie.setu.ca1_mad2.model.Exercise
 
 @Composable
-fun ListExerciseScreen(viewModel: GymTrackerViewModel) {
-    val exercises = viewModel.exercises
-
-    // Outer Column to place a heading + list
+fun ListExerciseScreen(
+    exercises: List<Exercise>
+) {
+    // Outer Column for heading and list
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -31,10 +31,19 @@ fun ListExerciseScreen(viewModel: GymTrackerViewModel) {
         )
         HorizontalDivider()
 
-        // Actual list
-        LazyColumn {
-            items(exercises) { exercise ->
-                Text("• ${exercise.name} - ${exercise.muscleGroup}")
+        if (exercises.isEmpty()) {
+            EmptyStateMessage(message = "No exercises yet. Add your first exercise!")
+        } else {
+            // Inside for actual list
+            LazyColumn(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                items(exercises) { exercise ->
+                    Text(
+                        "• ${exercise.name} - ${exercise.muscleGroup}",
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                }
             }
         }
     }

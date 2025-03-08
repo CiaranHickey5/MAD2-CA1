@@ -1,74 +1,127 @@
 package ie.setu.ca1_mad2
 
-import androidx.compose.runtime.mutableStateListOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import ie.setu.ca1_mad2.data.room.GymRepository
 import ie.setu.ca1_mad2.model.Exercise
 import ie.setu.ca1_mad2.model.Workout
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class GymTrackerViewModel : ViewModel() {
+@HiltViewModel
+class GymTrackerViewModel @Inject constructor(
+    private val repository: GymRepository
+) : ViewModel() {
 
-    private val _exercises = mutableStateListOf<Exercise>()
-    val exercises: List<Exercise> get() = _exercises
+    // Exercise state
+    private val _exercises = MutableStateFlow<List<Exercise>>(emptyList())
+    val exercises: StateFlow<List<Exercise>> = _exercises.asStateFlow()
+
+    // Workout state
+    private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
+    val workouts: StateFlow<List<Workout>> = _workouts.asStateFlow()
+
+    init {
+        // Collect exercises
+        viewModelScope.launch {
+            repository.exercises.collect { exerciseList ->
+                _exercises.value = exerciseList
+            }
+        }
+
+        // Collect workouts
+        viewModelScope.launch {
+            repository.workouts.collect { workoutList ->
+                _workouts.value = workoutList
+            }
+        }
+    }
 
     // Create global exercise
     fun addExercise(name: String, muscleGroup: String) {
         if (name.isNotBlank()) {
-            _exercises.add(
-                Exercise(name = name, muscleGroup = muscleGroup)
-            )
+            viewModelScope.launch {
+                repository.insertExercise(
+                    Exercise(name = name, muscleGroup = muscleGroup)
+                )
+            }
         }
     }
-
-    private val _workouts = mutableStateListOf<Workout>()
-    val workouts: List<Workout> get() = _workouts
 
     // Create a new workout
     fun addWorkout(name: String, description: String) {
         if (name.isNotBlank()) {
-            _workouts.add(Workout(name = name, description = description))
+            viewModelScope.launch {
+                repository.insertWorkout(
+                    Workout(name = name, description = description)
+                )
+            }
         }
     }
 
     // Update an existing workout
     fun updateWorkout(workoutId: String, newName: String, newDescription: String) {
-        val index = _workouts.indexOfFirst { it.id == workoutId }
-        if (index != -1 && newName.isNotBlank()) {
-            val oldWorkout = _workouts[index]
-            _workouts[index] = oldWorkout.copy(
-                name = newName,
-                description = newDescription,
-                exercises = oldWorkout.exercises // Keep existing exercises
-            )
+        if (newName.isNotBlank()) {
+            viewModelScope.launch {
+                // Find the workout
+                val workout = _workouts.value.find { it.id == workoutId } ?: return@launch
+
+                // Update the workout
+                val updatedWorkout = workout.copy(
+                    name = newName,
+                    description = newDescription
+                )
+
+                repository.updateWorkout(updatedWorkout)
+            }
         }
     }
 
     // Delete a workout by ID
     fun deleteWorkout(workoutId: String) {
-        _workouts.removeIf { it.id == workoutId }
+        viewModelScope.launch {
+            val workout = _workouts.value.find { it.id == workoutId } ?: return@launch
+            repository.deleteWorkout(workout)
+        }
     }
 
     // Add an exercise to a specific workout
     fun addExerciseToWorkout(workoutId: String, exerciseName: String, exerciseMuscleGroup: String) {
-        val workout = _workouts.find { it.id == workoutId } ?: return
         if (exerciseName.isNotBlank()) {
-            workout.exercises.add(Exercise(name = exerciseName, muscleGroup = exerciseMuscleGroup))
+            viewModelScope.launch {
+                val exercise = Exercise(
+                    name = exerciseName,
+                    muscleGroup = exerciseMuscleGroup
+                )
+
+                repository.addExerciseToWorkout(workoutId, exercise)
+            }
         }
     }
 
     // Update an exercise within a workout
     fun updateWorkoutExercise(workoutId: String, exerciseId: String, newName: String, newMuscleGroup: String) {
-        val workout = _workouts.find { it.id == workoutId } ?: return
-        val index = workout.exercises.indexOfFirst { it.id == exerciseId }
+        if (newName.isNotBlank()) {
+            viewModelScope.launch {
+                val exercise = Exercise(
+                    id = exerciseId,
+                    name = newName,
+                    muscleGroup = newMuscleGroup
+                )
 
-        if (index != -1 && newName.isNotBlank()) {
-            val oldExercise = workout.exercises[index]
-            workout.exercises[index] = oldExercise.copy(name = newName, muscleGroup = newMuscleGroup)
+                repository.updateExercise(exercise)
+            }
         }
     }
 
     // Remove an exercise from a specific workout
     fun removeExerciseFromWorkout(workoutId: String, exerciseId: String) {
-        val workout = _workouts.find { it.id == workoutId } ?: return
-        workout.exercises.removeIf { it.id == exerciseId }
+        viewModelScope.launch {
+            repository.removeExerciseFromWorkout(workoutId, exerciseId)
+        }
     }
 }
