@@ -63,6 +63,7 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
     implementation(libs.lifecycle.viewmodel.compose)
+    implementation("androidx.compose.material:material-icons-extended:1.6.1")
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     implementation("com.google.dagger:hilt-android:2.51")

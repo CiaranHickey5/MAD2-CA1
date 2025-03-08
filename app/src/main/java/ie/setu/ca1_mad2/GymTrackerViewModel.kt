@@ -7,8 +7,11 @@ import ie.setu.ca1_mad2.data.room.GymRepository
 import ie.setu.ca1_mad2.model.Exercise
 import ie.setu.ca1_mad2.model.Workout
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -25,6 +28,26 @@ class GymTrackerViewModel @Inject constructor(
     private val _workouts = MutableStateFlow<List<Workout>>(emptyList())
     val workouts: StateFlow<List<Workout>> = _workouts.asStateFlow()
 
+    // Muscle group filter state
+    private val _filterMuscleGroups = MutableStateFlow<List<String>>(emptyList())
+    val filterMuscleGroups = _filterMuscleGroups.asStateFlow()
+
+    // Filtered workouts based on muscle group filters
+    val filteredWorkouts = combine(workouts, filterMuscleGroups) { workoutList, muscleGroups ->
+        if (muscleGroups.isEmpty()) {
+            workoutList
+        } else {
+            workoutList.filter { workout ->
+                // Workout included if it has at least one exercise for each selected muscle group
+                muscleGroups.all { muscleGroup ->
+                    workout.exercises.any { exercise ->
+                        exercise.muscleGroup.contains(muscleGroup, ignoreCase = true)
+                    }
+                }
+            }
+        }
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
+
     init {
         // Collect exercises
         viewModelScope.launch {
@@ -39,6 +62,15 @@ class GymTrackerViewModel @Inject constructor(
                 _workouts.value = workoutList
             }
         }
+    }
+
+    // Filter functions
+    fun updateFilterMuscleGroups(muscleGroups: List<String>) {
+        _filterMuscleGroups.value = muscleGroups
+    }
+
+    fun clearFilters() {
+        _filterMuscleGroups.value = emptyList()
     }
 
     // Create global exercise
@@ -123,42 +155,5 @@ class GymTrackerViewModel @Inject constructor(
         viewModelScope.launch {
             repository.removeExerciseFromWorkout(workoutId, exerciseId)
         }
-    }
-
-    // Convert list of muscle groups to string
-    private fun convertMuscleGroupsToString(muscleGroups: List<String>): String {
-        return muscleGroups.joinToString(", ")
-    }
-
-    // Convert string of muscle groups to list
-    private fun convertStringToMuscleGroups(muscleGroupString: String): List<String> {
-        return muscleGroupString.split(", ").filter { it.isNotBlank() }
-    }
-
-    // Update the exercise with a list of muscle groups
-    fun updateWorkoutExerciseWithMuscleGroups(
-        workoutId: String,
-        exerciseId: String,
-        newName: String,
-        newMuscleGroups: List<String>
-    ) {
-        val muscleGroupString = convertMuscleGroupsToString(newMuscleGroups)
-        updateWorkoutExercise(workoutId, exerciseId, newName, muscleGroupString)
-    }
-
-    // Add an exercise to workout with list of muscle groups
-    fun addExerciseToWorkoutWithMuscleGroups(
-        workoutId: String,
-        exerciseName: String,
-        muscleGroups: List<String>
-    ) {
-        val muscleGroupString = convertMuscleGroupsToString(muscleGroups)
-        addExerciseToWorkout(workoutId, exerciseName, muscleGroupString)
-    }
-
-    // Add a global exercise with list of muscle groups
-    fun addExerciseWithMuscleGroups(name: String, muscleGroups: List<String>) {
-        val muscleGroupString = convertMuscleGroupsToString(muscleGroups)
-        addExercise(name, muscleGroupString)
     }
 }
