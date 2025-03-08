@@ -21,13 +21,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
-/**
- * A component that allows users to select multiple muscle groups for an exercise
- *
- * @param selectedMuscleGroups The currently selected muscle groups
- * @param onSelectionChanged Callback when selection changes, provides the complete list of selected muscle groups
- * @param modifier Optional modifier for the component
- */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun MultiMuscleGroupSelector(
@@ -61,7 +54,7 @@ fun MultiMuscleGroupSelector(
                     isSelected = selectedMuscleGroups.contains(muscleGroup),
                     onSelectionChanged = { selected ->
                         if (selected) {
-                            // Add to selection if not already
+                            // Add to selection if not already there
                             if (!selectedMuscleGroups.contains(muscleGroup)) {
                                 onSelectionChanged(selectedMuscleGroups + muscleGroup)
                             }

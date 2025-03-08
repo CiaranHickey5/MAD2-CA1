@@ -14,7 +14,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -27,6 +30,7 @@ import ie.setu.ca1_mad2.model.Workout
 import ie.setu.ca1_mad2.ui.components.cards.ExerciseCard
 import ie.setu.ca1_mad2.ui.components.dialogs.DeleteConfirmationDialog
 import ie.setu.ca1_mad2.ui.components.dialogs.EditExerciseDialog
+import ie.setu.ca1_mad2.ui.components.inputs.DefaultExerciseSelector
 import ie.setu.ca1_mad2.ui.components.inputs.MultiMuscleGroupSelector
 import kotlinx.coroutines.delay
 
@@ -35,6 +39,9 @@ fun WorkoutDetailScreen(
     viewModel: GymTrackerViewModel,
     workout: Workout
 ) {
+    // Manage scrolling
+    val scrollState = rememberScrollState()
+
     var exerciseName by remember { mutableStateOf("") }
     var selectedMuscleGroups by remember { mutableStateOf<List<String>>(emptyList()) }
     var exerciseAdded by remember { mutableStateOf(false) }
@@ -104,8 +111,8 @@ fun WorkoutDetailScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
+            .verticalScroll(scrollState)
     ) {
-        // Workout Header
         Text(
             text = workout.name,
             style = MaterialTheme.typography.headlineMedium,
@@ -154,7 +161,29 @@ fun WorkoutDetailScreen(
         }
 
         // Add Exercise Form
-        FormSection(title = "Add New Exercise") {
+        FormSection(title = "Add Exercise to Workout") {
+            Text(
+                text = "Select from default exercises:",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            DefaultExerciseSelector(
+                onExerciseSelected = { exercise ->
+                    viewModel.addExerciseToWorkout(workout.id, exercise.name, exercise.muscleGroup)
+                    exerciseAdded = true
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+            Text(
+                text = "Or create custom exercise:",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
             FormField(
                 value = exerciseName,
                 onValueChange = { exerciseName = it },
@@ -184,7 +213,7 @@ fun WorkoutDetailScreen(
                 modifier = Modifier.fillMaxWidth(),
                 enabled = exerciseName.isNotBlank() && selectedMuscleGroups.isNotEmpty()
             ) {
-                Text("Add Exercise to Workout")
+                Text("Add Custom Exercise")
             }
         }
 

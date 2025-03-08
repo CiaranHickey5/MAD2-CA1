@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ie.setu.ca1_mad2.GymTrackerViewModel
+import ie.setu.ca1_mad2.ui.components.inputs.DefaultExerciseSelector
 import ie.setu.ca1_mad2.ui.components.inputs.MultiMuscleGroupSelector
 import kotlinx.coroutines.delay
 
@@ -48,6 +50,28 @@ fun AddExerciseScreen(viewModel: GymTrackerViewModel) {
             modifier = Modifier.padding(bottom = 24.dp)
         )
 
+        Text(
+            text = "Select from default exercises:",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+
+        DefaultExerciseSelector(
+            onExerciseSelected = { exercise ->
+                viewModel.addExercise(exercise.name, exercise.muscleGroup)
+                exerciseAdded = true
+            },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 24.dp))
+
+        Text(
+            text = "Or create custom exercise:",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp)
+        )
+
         FormField(
             value = name,
             onValueChange = { name = it },
@@ -67,7 +91,7 @@ fun AddExerciseScreen(viewModel: GymTrackerViewModel) {
         Button(
             onClick = {
                 if (name.isNotBlank() && selectedMuscleGroups.isNotEmpty()) {
-                    // Join groups with comma
+                    // Join multiple muscle groups with comma
                     val muscleGroupString = selectedMuscleGroups.joinToString(", ")
                     viewModel.addExercise(name, muscleGroupString)
                     name = ""
@@ -78,7 +102,7 @@ fun AddExerciseScreen(viewModel: GymTrackerViewModel) {
             modifier = Modifier.fillMaxWidth(0.8f),
             enabled = name.isNotBlank() && selectedMuscleGroups.isNotEmpty()
         ) {
-            Text("Add Exercise")
+            Text("Add Custom Exercise")
         }
 
         if (exerciseAdded) {
