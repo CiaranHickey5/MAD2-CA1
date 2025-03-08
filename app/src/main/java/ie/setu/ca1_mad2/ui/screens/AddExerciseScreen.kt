@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -22,18 +24,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import ie.setu.ca1_mad2.GymTrackerViewModel
+import ie.setu.ca1_mad2.ui.components.inputs.MultiMuscleGroupSelector
 import kotlinx.coroutines.delay
 
 @Composable
 fun AddExerciseScreen(viewModel: GymTrackerViewModel) {
     var name by remember { mutableStateOf("") }
-    var muscleGroup by remember { mutableStateOf("") }
+    var selectedMuscleGroups by remember { mutableStateOf<List<String>>(emptyList()) }
     var exerciseAdded by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(16.dp)
+            .verticalScroll(scrollState),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
@@ -52,25 +57,26 @@ fun AddExerciseScreen(viewModel: GymTrackerViewModel) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        FormField(
-            value = muscleGroup,
-            onValueChange = { muscleGroup = it },
-            label = "Muscle Group",
-            singleLine = true
+        MultiMuscleGroupSelector(
+            selectedMuscleGroups = selectedMuscleGroups,
+            onSelectionChanged = { selectedMuscleGroups = it }
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
-                if (name.isNotBlank()) {
-                    viewModel.addExercise(name, muscleGroup)
+                if (name.isNotBlank() && selectedMuscleGroups.isNotEmpty()) {
+                    // Join groups with comma
+                    val muscleGroupString = selectedMuscleGroups.joinToString(", ")
+                    viewModel.addExercise(name, muscleGroupString)
                     name = ""
-                    muscleGroup = ""
+                    selectedMuscleGroups = emptyList()
                     exerciseAdded = true
                 }
             },
-            modifier = Modifier.fillMaxWidth(0.8f)
+            modifier = Modifier.fillMaxWidth(0.8f),
+            enabled = name.isNotBlank() && selectedMuscleGroups.isNotEmpty()
         ) {
             Text("Add Exercise")
         }

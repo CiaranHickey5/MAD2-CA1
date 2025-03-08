@@ -124,4 +124,41 @@ class GymTrackerViewModel @Inject constructor(
             repository.removeExerciseFromWorkout(workoutId, exerciseId)
         }
     }
+
+    // Convert list of muscle groups to string
+    private fun convertMuscleGroupsToString(muscleGroups: List<String>): String {
+        return muscleGroups.joinToString(", ")
+    }
+
+    // Convert string of muscle groups to list
+    private fun convertStringToMuscleGroups(muscleGroupString: String): List<String> {
+        return muscleGroupString.split(", ").filter { it.isNotBlank() }
+    }
+
+    // Update the exercise with a list of muscle groups
+    fun updateWorkoutExerciseWithMuscleGroups(
+        workoutId: String,
+        exerciseId: String,
+        newName: String,
+        newMuscleGroups: List<String>
+    ) {
+        val muscleGroupString = convertMuscleGroupsToString(newMuscleGroups)
+        updateWorkoutExercise(workoutId, exerciseId, newName, muscleGroupString)
+    }
+
+    // Add an exercise to workout with list of muscle groups
+    fun addExerciseToWorkoutWithMuscleGroups(
+        workoutId: String,
+        exerciseName: String,
+        muscleGroups: List<String>
+    ) {
+        val muscleGroupString = convertMuscleGroupsToString(muscleGroups)
+        addExerciseToWorkout(workoutId, exerciseName, muscleGroupString)
+    }
+
+    // Add a global exercise with list of muscle groups
+    fun addExerciseWithMuscleGroups(name: String, muscleGroups: List<String>) {
+        val muscleGroupString = convertMuscleGroupsToString(muscleGroups)
+        addExercise(name, muscleGroupString)
+    }
 }

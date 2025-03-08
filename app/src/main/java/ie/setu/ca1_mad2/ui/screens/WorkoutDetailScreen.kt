@@ -27,6 +27,7 @@ import ie.setu.ca1_mad2.model.Workout
 import ie.setu.ca1_mad2.ui.components.cards.ExerciseCard
 import ie.setu.ca1_mad2.ui.components.dialogs.DeleteConfirmationDialog
 import ie.setu.ca1_mad2.ui.components.dialogs.EditExerciseDialog
+import ie.setu.ca1_mad2.ui.components.inputs.MultiMuscleGroupSelector
 import kotlinx.coroutines.delay
 
 @Composable
@@ -35,14 +36,14 @@ fun WorkoutDetailScreen(
     workout: Workout
 ) {
     var exerciseName by remember { mutableStateOf("") }
-    var exerciseMuscleGroup by remember { mutableStateOf("") }
+    var selectedMuscleGroups by remember { mutableStateOf<List<String>>(emptyList()) }
     var exerciseAdded by remember { mutableStateOf(false) }
 
     // States for edit dialog
     var showEditDialog by remember { mutableStateOf(false) }
     var exerciseToEdit by remember { mutableStateOf<Exercise?>(null) }
     var editedName by remember { mutableStateOf("") }
-    var editedMuscleGroup by remember { mutableStateOf("") }
+    var editedMuscleGroups by remember { mutableStateOf<List<String>>(emptyList()) }
 
     // States for delete dialog
     var showDeleteDialog by remember { mutableStateOf(false) }
@@ -53,16 +54,18 @@ fun WorkoutDetailScreen(
         EditExerciseDialog(
             exercise = exerciseToEdit!!,
             name = editedName,
-            muscleGroup = editedMuscleGroup,
+            muscleGroup = exerciseToEdit!!.muscleGroup,
             onNameChange = { editedName = it },
-            onMuscleGroupChange = { editedMuscleGroup = it },
+            onMuscleGroupChange = { newGroups ->
+                editedMuscleGroups = newGroups
+            },
             onSave = {
                 exerciseToEdit?.let { exercise ->
                     viewModel.updateWorkoutExercise(
                         workoutId = workout.id,
                         exerciseId = exercise.id,
                         newName = editedName,
-                        newMuscleGroup = editedMuscleGroup
+                        newMuscleGroup = editedMuscleGroups.joinToString(", ")
                     )
                 }
                 showEditDialog = false
@@ -138,7 +141,7 @@ fun WorkoutDetailScreen(
                         onEditClicked = {
                             exerciseToEdit = exercise
                             editedName = exercise.name
-                            editedMuscleGroup = exercise.muscleGroup
+                            editedMuscleGroups = exercise.muscleGroup.split(", ").filter { it.isNotBlank() }
                             showEditDialog = true
                         },
                         onDeleteClicked = {
@@ -158,26 +161,28 @@ fun WorkoutDetailScreen(
                 label = "Exercise Name"
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
-            FormField(
-                value = exerciseMuscleGroup,
-                onValueChange = { exerciseMuscleGroup = it },
-                label = "Muscle Group"
+            MultiMuscleGroupSelector(
+                selectedMuscleGroups = selectedMuscleGroups,
+                onSelectionChanged = { selectedMuscleGroups = it }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
-                    if (exerciseName.isNotBlank()) {
-                        viewModel.addExerciseToWorkout(workout.id, exerciseName, exerciseMuscleGroup)
+                    if (exerciseName.isNotBlank() && selectedMuscleGroups.isNotEmpty()) {
+                        // Join groups with comma
+                        val muscleGroupString = selectedMuscleGroups.joinToString(", ")
+                        viewModel.addExerciseToWorkout(workout.id, exerciseName, muscleGroupString)
                         exerciseName = ""
-                        exerciseMuscleGroup = ""
+                        selectedMuscleGroups = emptyList()
                         exerciseAdded = true
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = exerciseName.isNotBlank() && selectedMuscleGroups.isNotEmpty()
             ) {
                 Text("Add Exercise to Workout")
             }
