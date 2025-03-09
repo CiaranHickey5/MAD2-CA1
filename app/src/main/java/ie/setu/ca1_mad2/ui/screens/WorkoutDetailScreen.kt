@@ -1,3 +1,4 @@
+
 package ie.setu.ca1_mad2.ui.screens
 
 import EmptyStateMessage
@@ -12,8 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -46,8 +45,11 @@ fun WorkoutDetailScreen(
     var selectedMuscleGroups by remember { mutableStateOf<List<String>>(emptyList()) }
     var exerciseAdded by remember { mutableStateOf(false) }
 
-    // Track form validation errors
+    // Flag to track form validation errors
     var showValidationErrors by remember { mutableStateOf(false) }
+
+    // State to control visibility of add exercise form
+    var showAddExerciseForm by remember { mutableStateOf(false) }
 
     // States for edit dialog
     var showEditDialog by remember { mutableStateOf(false) }
@@ -116,6 +118,7 @@ fun WorkoutDetailScreen(
             .padding(16.dp)
             .verticalScroll(scrollState)
     ) {
+        // Workout header
         Text(
             text = workout.name,
             style = MaterialTheme.typography.headlineMedium,
@@ -139,13 +142,11 @@ fun WorkoutDetailScreen(
         if (workout.exercises.isEmpty()) {
             EmptyStateMessage(message = "No exercises added to this workout yet")
         } else {
-            LazyColumn(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth(),
+            // Display each exercise as a card
+            Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                items(workout.exercises) { exercise ->
+                workout.exercises.forEach { exercise ->
                     ExerciseCard(
                         exercise = exercise,
                         onEditClicked = {
@@ -159,81 +160,98 @@ fun WorkoutDetailScreen(
                             showDeleteDialog = true
                         }
                     )
+                    Spacer(modifier = Modifier.height(4.dp))
                 }
             }
         }
 
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Add Exercise Button
+        Button(
+            onClick = { showAddExerciseForm = !showAddExerciseForm },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(if (showAddExerciseForm) "Hide Add Exercise Form" else "Add Exercise to Workout")
+        }
+
         // Add Exercise Form
-        FormSection(title = "Add Exercise to Workout") {
-            Text(
-                text = "Select from default exercises:",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            DefaultExerciseSelector(
-                onExerciseSelected = { exercise ->
-                    viewModel.addExerciseToWorkout(workout.id, exercise.name, exercise.muscleGroup)
-                    // Reset custom exercise form to avoid validation errors
-                    exerciseName = ""
-                    selectedMuscleGroups = emptyList()
-                    showValidationErrors = false
-                    exerciseAdded = true
-                },
-                modifier = Modifier.fillMaxWidth()
-            )
-
-            HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-            Text(
-                text = "Or create custom exercise:",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(bottom = 8.dp)
-            )
-
-            FormField(
-                value = exerciseName,
-                onValueChange = { exerciseName = it },
-                label = "Exercise Name"
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            MultiMuscleGroupSelector(
-                selectedMuscleGroups = selectedMuscleGroups,
-                onSelectionChanged = { selectedMuscleGroups = it },
-                showValidationError = showValidationErrors && selectedMuscleGroups.isEmpty()
-            )
-
+        if (showAddExerciseForm) {
+            Spacer(modifier = Modifier.height(16.dp))
+            HorizontalDivider()
             Spacer(modifier = Modifier.height(16.dp))
 
-            Button(
-                onClick = {
-                    showValidationErrors = true
-                    if (exerciseName.isNotBlank() && selectedMuscleGroups.isNotEmpty()) {
-                        // Join groups with comma
-                        val muscleGroupString = selectedMuscleGroups.joinToString(", ")
-                        viewModel.addExerciseToWorkout(workout.id, exerciseName, muscleGroupString)
+            FormSection(title = "Add Exercise to Workout") {
+                Text(
+                    text = "Select from default exercises:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                DefaultExerciseSelector(
+                    onExerciseSelected = { exercise ->
+                        viewModel.addExerciseToWorkout(workout.id, exercise.name, exercise.muscleGroup)
+                        // Reset custom exercise
                         exerciseName = ""
                         selectedMuscleGroups = emptyList()
                         showValidationErrors = false
                         exerciseAdded = true
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+
+                Text(
+                    text = "Or create custom exercise:",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+
+                FormField(
+                    value = exerciseName,
+                    onValueChange = { exerciseName = it },
+                    label = "Exercise Name"
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                MultiMuscleGroupSelector(
+                    selectedMuscleGroups = selectedMuscleGroups,
+                    onSelectionChanged = { selectedMuscleGroups = it },
+                    showValidationError = showValidationErrors && selectedMuscleGroups.isEmpty()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = {
+                        showValidationErrors = true
+                        if (exerciseName.isNotBlank() && selectedMuscleGroups.isNotEmpty()) {
+                            // Join groups with comma
+                            val muscleGroupString = selectedMuscleGroups.joinToString(", ")
+                            viewModel.addExerciseToWorkout(workout.id, exerciseName, muscleGroupString)
+                            exerciseName = ""
+                            selectedMuscleGroups = emptyList()
+                            showValidationErrors = false
+                            exerciseAdded = true
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = exerciseName.isNotBlank()
+                ) {
+                    Text("Add Custom Exercise")
+                }
+
+                if (exerciseAdded) {
+                    SuccessMessage(message = "Exercise added successfully!")
+
+                    // Reset message after delay
+                    LaunchedEffect(exerciseAdded) {
+                        delay(2000)
+                        exerciseAdded = false
                     }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = exerciseName.isNotBlank()
-            ) {
-                Text("Add Custom Exercise")
-            }
-        }
-
-        if (exerciseAdded) {
-            SuccessMessage(message = "Exercise added successfully!")
-
-            // Reset message after delay
-            LaunchedEffect(exerciseAdded) {
-                delay(2000)
-                exerciseAdded = false
+                }
             }
         }
     }
