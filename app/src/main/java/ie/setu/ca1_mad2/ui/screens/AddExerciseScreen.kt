@@ -34,6 +34,9 @@ fun AddExerciseScreen(viewModel: GymTrackerViewModel) {
     var name by remember { mutableStateOf("") }
     var selectedMuscleGroups by remember { mutableStateOf<List<String>>(emptyList()) }
     var exerciseAdded by remember { mutableStateOf(false) }
+
+    var showValidationErrors by remember { mutableStateOf(false) }
+
     val scrollState = rememberScrollState()
 
     Column(
@@ -59,6 +62,10 @@ fun AddExerciseScreen(viewModel: GymTrackerViewModel) {
         DefaultExerciseSelector(
             onExerciseSelected = { exercise ->
                 viewModel.addExercise(exercise.name, exercise.muscleGroup)
+                // Reset form states
+                name = ""
+                selectedMuscleGroups = emptyList()
+                showValidationErrors = false
                 exerciseAdded = true
             },
             modifier = Modifier.fillMaxWidth()
@@ -83,24 +90,28 @@ fun AddExerciseScreen(viewModel: GymTrackerViewModel) {
 
         MultiMuscleGroupSelector(
             selectedMuscleGroups = selectedMuscleGroups,
-            onSelectionChanged = { selectedMuscleGroups = it }
+            onSelectionChanged = { selectedMuscleGroups = it },
+            showValidationError = showValidationErrors && selectedMuscleGroups.isEmpty()
         )
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Button(
             onClick = {
+                showValidationErrors = true
+
                 if (name.isNotBlank() && selectedMuscleGroups.isNotEmpty()) {
                     // Join multiple muscle groups with comma
                     val muscleGroupString = selectedMuscleGroups.joinToString(", ")
                     viewModel.addExercise(name, muscleGroupString)
                     name = ""
                     selectedMuscleGroups = emptyList()
+                    showValidationErrors = false
                     exerciseAdded = true
                 }
             },
             modifier = Modifier.fillMaxWidth(0.8f),
-            enabled = name.isNotBlank() && selectedMuscleGroups.isNotEmpty()
+            enabled = name.isNotBlank()
         ) {
             Text("Add Custom Exercise")
         }

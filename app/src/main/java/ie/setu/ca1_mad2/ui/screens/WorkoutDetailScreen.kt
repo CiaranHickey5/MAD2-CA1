@@ -46,6 +46,9 @@ fun WorkoutDetailScreen(
     var selectedMuscleGroups by remember { mutableStateOf<List<String>>(emptyList()) }
     var exerciseAdded by remember { mutableStateOf(false) }
 
+    // Track form validation errors
+    var showValidationErrors by remember { mutableStateOf(false) }
+
     // States for edit dialog
     var showEditDialog by remember { mutableStateOf(false) }
     var exerciseToEdit by remember { mutableStateOf<Exercise?>(null) }
@@ -171,6 +174,10 @@ fun WorkoutDetailScreen(
             DefaultExerciseSelector(
                 onExerciseSelected = { exercise ->
                     viewModel.addExerciseToWorkout(workout.id, exercise.name, exercise.muscleGroup)
+                    // Reset custom exercise form to avoid validation errors
+                    exerciseName = ""
+                    selectedMuscleGroups = emptyList()
+                    showValidationErrors = false
                     exerciseAdded = true
                 },
                 modifier = Modifier.fillMaxWidth()
@@ -194,24 +201,27 @@ fun WorkoutDetailScreen(
 
             MultiMuscleGroupSelector(
                 selectedMuscleGroups = selectedMuscleGroups,
-                onSelectionChanged = { selectedMuscleGroups = it }
+                onSelectionChanged = { selectedMuscleGroups = it },
+                showValidationError = showValidationErrors && selectedMuscleGroups.isEmpty()
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
+                    showValidationErrors = true
                     if (exerciseName.isNotBlank() && selectedMuscleGroups.isNotEmpty()) {
                         // Join groups with comma
                         val muscleGroupString = selectedMuscleGroups.joinToString(", ")
                         viewModel.addExerciseToWorkout(workout.id, exerciseName, muscleGroupString)
                         exerciseName = ""
                         selectedMuscleGroups = emptyList()
+                        showValidationErrors = false
                         exerciseAdded = true
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = exerciseName.isNotBlank() && selectedMuscleGroups.isNotEmpty()
+                enabled = exerciseName.isNotBlank()
             ) {
                 Text("Add Custom Exercise")
             }

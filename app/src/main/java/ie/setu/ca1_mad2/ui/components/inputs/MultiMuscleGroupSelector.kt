@@ -26,7 +26,8 @@ import androidx.compose.ui.unit.dp
 fun MultiMuscleGroupSelector(
     selectedMuscleGroups: List<String>,
     onSelectionChanged: (List<String>) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showValidationError: Boolean = false
 ) {
     val muscleGroups = listOf(
         "Chest", "Back", "Shoulders", "Biceps", "Triceps", "Forearms",
@@ -67,7 +68,8 @@ fun MultiMuscleGroupSelector(
             }
         }
 
-        if (selectedMuscleGroups.isEmpty()) {
+        // Error if requested from showValidationError and list is empty
+        if (showValidationError && selectedMuscleGroups.isEmpty()) {
             Text(
                 text = "Please select at least one muscle group",
                 style = MaterialTheme.typography.bodySmall,
